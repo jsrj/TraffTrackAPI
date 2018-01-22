@@ -2,6 +2,11 @@ import Vapor
 
 extension Droplet {
     func setupRoutes() throws {
+        get("/") { req in
+            var resJson = JSON()
+            try resJson.set("message", "Trafftrak-API layer hosted on Heroku works!")
+        }
+        
         get("hello") { req in
             var json = JSON()
             try json.set("hello", "world")
