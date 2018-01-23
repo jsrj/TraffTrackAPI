@@ -5,6 +5,9 @@ extension Droplet {
         
         let analyticsController = AnalyticsController()
         analyticsController.addRoutes(to: self)
+        
+        let visitorLoggingController = VisitorLoggingController()
+        visitorLoggingController.addRoutes(to: self)
 
         
         // response to requests to /info domain

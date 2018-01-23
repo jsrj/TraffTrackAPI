@@ -15,5 +15,20 @@ struct AnalyticsController {
         
         // Translates to www.url.com/app/tracker/
         let analyticsGroup = drop.grouped("app", "tracker")
+        
+        // www.url.com/app/tracker/new
+        analyticsGroup.post("/new", handler: createNewTracker)
+    }
+    
+    
+    func createNewTracker(_ req: Request) throws -> ResponseRepresentable {
+        guard let json = req.json else {
+            throw Abort.badRequest
+        }
+        
+        let newTracker = try AnalyticsData(json: json)
+        try newTracker.save()
+        
+        return newTracker
     }
 }

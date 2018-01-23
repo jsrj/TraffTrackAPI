@@ -9,43 +9,28 @@ final class AnalyticsData: Model {
     let ApplicationName:  String
     let ApplicationURI:   String
     let ApplicationKey:   String
-    
-    let VisitedFrom:      String
+    let URIsVisitedFrom:  String
     
     // Since relational databases are weak with arrays, this will have to be a comma dilimited string instead.
-    let LinksNavigated:   String
-    
-    let TimeOfVisit:      String
-    let VisitDurationMin: Int
-    
     let OwnerID:          Int
     
     // Comma delimited string of ID numbers
-    let VisitorIDs:       String
+    let VisitorLogIDs:    String
     
     
     init(
         applicationName: String,
-        applicationURI: String,
-        visitedFrom: String,
+        applicationURI:  String,
         ownerID: Int            ) {
         
         self.ApplicationName = applicationName
         self.ApplicationURI  = applicationURI
         self.ApplicationKey  = UUID().uuidString
         self.OwnerID         = ownerID
-        self.VisitorIDs      = ""
         
-        self.VisitedFrom     = visitedFrom
-        self.LinksNavigated  = ""
+        self.VisitorLogIDs   = ""
+        self.URIsVisitedFrom = "\(applicationURI),"
         
-        let currentDate       = Date()
-        let DTFormatter       = DateFormatter()
-        DTFormatter.dateStyle = .long
-        DTFormatter.timeStyle = .long
-        self.TimeOfVisit      = DTFormatter.string(from: currentDate)
-        
-        self.VisitDurationMin = 0
     }
     
     
@@ -53,12 +38,9 @@ final class AnalyticsData: Model {
         ApplicationName  = try row.get("ApplicationName")
         ApplicationURI   = try row.get("ApplicationURI")
         ApplicationKey   = try row.get("ApplicationKey")
-        VisitedFrom      = try row.get("VisitedFrom")
-        LinksNavigated   = try row.get("LinksNavigated")
-        TimeOfVisit      = try row.get("TimeOfVisit")
-        VisitDurationMin = try row.get("VisitDurationMin")
+        URIsVisitedFrom  = try row.get("URIsVisitedFrom")
         OwnerID          = try row.get("OwnerID")
-        VisitorIDs       = try row.get("VisitorIDs")
+        VisitorLogIDs    = try row.get("VisitorLogIDs")
     }
     
     
@@ -68,12 +50,9 @@ final class AnalyticsData: Model {
         try row.set("ApplicationName", ApplicationName)
         try row.set("ApplicationURI",  ApplicationURI)
         try row.set("ApplicationKey",  ApplicationKey)
-        try row.set("VisitedFrom",     VisitedFrom)
-        try row.set("LinksNavigated",  LinksNavigated)
-        try row.set("TimeOfVisit",     TimeOfVisit)
-        try row.set("VisitDurationMin",VisitDurationMin)
+        try row.set("URIsVisitedFrom", URIsVisitedFrom)
         try row.set("OwnerID",         OwnerID)
-        try row.set("VisitorIDs",      VisitorIDs)
+        try row.set("VisitorLogIDs",   VisitorLogIDs)
         
         return row
     }
@@ -89,12 +68,9 @@ extension AnalyticsData: Preparation {
             builder.string( "ApplicationName"  )
             builder.string( "ApplicationURI"   )
             builder.string( "ApplicationKey"   )
-            builder.string( "VisitedFrom"      )
-            builder.string(   "LinksNavigated" )
-            builder.string( "TimeOfVisit"      )
-            builder.int(    "VisitDurationMin" )
+            builder.string( "URIsVisitedFrom"  )
             builder.int(    "OwnerID"          )
-            builder.string( "VisitorIDs"       )
+            builder.string( "VisitorLogIDs"    )
         }
         
     }
@@ -103,3 +79,32 @@ extension AnalyticsData: Preparation {
         try database.delete(self)
     }
 }
+
+// Route Specific Extensions
+extension AnalyticsData: JSONConvertible {
+    convenience init(json: JSON) throws {
+        // Creation from JSON/POST request
+        try self.init(
+            applicationName:  json.get("ApplicationName"),
+            applicationURI:   json.get("ApplicationURI"),
+            ownerID:          json.get("OwnerID")
+        )}
+    
+    func makeJSON() throws -> JSON {
+        // JSONification from Database for GET request
+        var AnalyticsDataJson = JSON()
+        
+        try AnalyticsDataJson.set("id", id)
+        try AnalyticsDataJson.set("ApplicationName", ApplicationName)
+        try AnalyticsDataJson.set("ApplicationURI",  ApplicationURI)
+        try AnalyticsDataJson.set("ApplicationKey",  ApplicationKey)
+        try AnalyticsDataJson.set("URIsVisitedFrom", URIsVisitedFrom)
+        try AnalyticsDataJson.set("OwnerID",         OwnerID)
+        // MARK: Convert to an array of Visitor objects queried from the parsed IDs string.
+        try AnalyticsDataJson.set("VisitorLogIDs",   VisitorLogIDs)
+        
+        return AnalyticsDataJson
+    }
+}
+
+extension AnalyticsData: ResponseRepresentable {}
