@@ -2,29 +2,20 @@ import Vapor
 
 extension Droplet {
     func setupRoutes() throws {
-        get("/") { req in
-            var resJson = JSON()
-            try resJson.set("message", "Trafftrak-API layer hosted on Heroku works!")
-        }
         
-        get("hello") { req in
-            var json = JSON()
-            try json.set("hello", "world")
-            return json
-        }
+        let analyticsController = AnalyticsController()
+        analyticsController.addRoutes(to: self)
 
-        get("plaintext") { req in
-            return "Hello, world!"
-        }
-
+        
         // response to requests to /info domain
         // with a description of the request
         get("info") { req in
+            
+            // req.description will also be usable for logging data about visitor such as user-agent, for responsive optimization in the future.
+            
+            // x-Forwarded-For info can be used to identify unique sessions semi-reliably as well.
             return req.description
         }
-
         get("description") { req in return req.description }
-        
-        try resource("posts", PostController.self)
     }
 }
