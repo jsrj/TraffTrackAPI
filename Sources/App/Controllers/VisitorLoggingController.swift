@@ -16,7 +16,7 @@ struct VisitorLoggingController {
         let visitorsGroup = drop.grouped("visitor", "trace")
         
         // www.url.com/visitor/trace/log/0ab34-exo1f-829d-920dd3
-        visitorsGroup.post("log/", handler: sendLogData)
+        visitorsGroup.post("log/:source", handler: sendLogData)
     }
     
     func sendLogData(_ req: Request) throws -> ResponseRepresentable {
