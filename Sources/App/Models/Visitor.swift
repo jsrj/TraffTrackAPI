@@ -13,24 +13,28 @@ final class Visitor: Model {
     
     let VisitorSignature: String
     let UserAgent:        String
-    let LinkNavigated:    String
     let TimeOfVisit:      String
     let VisitDurationMin: Int
-    let AssocAppURI:      String
+    let AssocAppkey:      String
+    let AssocAppTitle:    String
+    let Source:           String
     
     init(
         vistorID:      String,
         visitorPort:   String,
         userAgent:     String,
-        linkNavigated: String,
-        assocAppURI:   String
+        assocAppKey:   String,
+        assocAppTitle: String,
+        source:        String
+        
         ) {
         // vistorID    - X-Forwarded-For
         // VisitorPort - X-Forwarded-Port
         self.VisitorSignature = "\(String(vistorID)):\(String(visitorPort))/"
         
         self.UserAgent        = userAgent
-        self.LinkNavigated   = linkNavigated
+        self.AssocAppkey      = assocAppKey
+        self.AssocAppTitle    = assocAppTitle
         
         let currentDate       = Date()
         let DTFormatter       = DateFormatter()
@@ -39,27 +43,29 @@ final class Visitor: Model {
         self.TimeOfVisit      = DTFormatter.string(from: currentDate)
         
         self.VisitDurationMin = 0
-        self.AssocAppURI      = assocAppURI
+        self.Source           = source
     }
     
     init(row: Row) throws {
         VisitorSignature = try row.get("VisitorSignature")
         UserAgent        = try row.get("UserAgent")
-        LinkNavigated    = try row.get("LinkNavigated")
         TimeOfVisit      = try row.get("TimeOfVisit")
         VisitDurationMin = try row.get("VisitDurationMin")
-        AssocAppURI      = try row.get("AssocAppURI")
+        AssocAppkey      = try row.get("AssocAppKey")
+        AssocAppTitle    = try row.get("AssocAppTitle")
+        Source           = try row.get("Source")
     }
     
     func makeRow() throws -> Row {
         var row = Row()
         
-        try row.set("VisitorSignature", VisitorSignature)
-        try row.set("UserAgent",        UserAgent)
-        try row.set("LinkNavigated",    LinkNavigated)
-        try row.set("TimeOfVisit",      TimeOfVisit)
-        try row.set("VisitDurationMin", VisitDurationMin)
-        try row.set("AssocAppURI",      AssocAppURI)
+            try row.set("VisitorSignature", VisitorSignature)
+            try row.set("UserAgent"       , UserAgent)
+            try row.set("TimeOfVisit"     , TimeOfVisit)
+            try row.set("VisitDurationMin", VisitDurationMin)
+            try row.set("AssocAppKey"     , AssocAppkey)
+            try row.set("AssocAppTitle"   , AssocAppTitle)
+            try row.set("Source"          , Source)
         
         return row
     }
@@ -73,10 +79,11 @@ extension Visitor: Preparation {
             builder.id()
             builder.string("VisitorSignature")
             builder.string("UserAgent")
-            builder.string("LinkNavigated")
             builder.string("TimeOfVisit")
             builder.int("VisitDurationMin")
-            builder.string("AssocAppURI")
+            builder.string("AssocAppKey")
+            builder.string("AssocAppTitle")
+            builder.string("Source")
         }
         
     }
@@ -96,8 +103,9 @@ extension Visitor: JSONConvertible {
             userAgent:      json.get("UserAgent"),
             
             // From req.json
-            linkNavigated:  json.get("uniqueLink"),
-            assocAppURI:    json.get("appURI")
+            assocAppKey:    json.get("AppKey"),
+            assocAppTitle:  json.get("assocAppTitle"),
+            source:         json.get("Source")
         )}
     
     func makeJSON() throws -> JSON {
@@ -106,11 +114,12 @@ extension Visitor: JSONConvertible {
         
         try VisitorTraceJson.set("id", id)
         try VisitorTraceJson.set("VisitorSignature", VisitorSignature)
-        try VisitorTraceJson.set("UserAgent",        UserAgent)
-        try VisitorTraceJson.set("LinkNavigated",    LinkNavigated)
-        try VisitorTraceJson.set("TimeOfVisit",      TimeOfVisit)
+        try VisitorTraceJson.set("UserAgent"       , UserAgent)
+        try VisitorTraceJson.set("TimeOfVisit"     , TimeOfVisit)
         try VisitorTraceJson.set("VisitDurationMin", VisitDurationMin)
-        try VisitorTraceJson.set("AssocAppURI",      AssocAppURI)
+        try VisitorTraceJson.set("AssocAppKey"     , AssocAppkey)
+        try VisitorTraceJson.set("AssocAppTitle"   , AssocAppTitle)
+        try VisitorTraceJson.set("Source"          , Source)
         
         return VisitorTraceJson
     }
